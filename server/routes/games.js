@@ -17,7 +17,7 @@ router.use(authRequired);
  *  - skill_level (beginner, intermediate, advanced)
  * 
  */
-router.get('/game', authRequired, async (req, res) => {
+router.get('/games', authRequired, async (req, res) => {
     try {
         const skillLevel = req.query.skill_level;
         const startDate = new Date();
@@ -48,7 +48,7 @@ router.get('/game', authRequired, async (req, res) => {
     }
 })
 
-router.post('/game', authRequired, requireRole('host'), async (req, res) => {
+router.post('/games', authRequired, requireRole('host'), async (req, res) => {
     try {
         const hostId = req.user.id;
 
@@ -88,4 +88,20 @@ router.post('/game', authRequired, requireRole('host'), async (req, res) => {
     }
 })
 
+
+router.post('/games/:id/join', (req, res) => {
+    //first need to have the authRequired middlware. 
+    // need to check if the current date is lower than the games date
+    // need to check if the user is not in the game (if he is in the game, mention that in the response)
+    // need to check if the game has the availble sports for participants.
+    // add the user_id inside of the participants of the game
+    // add the participation record
+    // return the result message that user was added in the game.
+})
+
+router.post('/games/:id/leave', (req, res) => {
+    
+})
+
+rotuer.delete 
 module.exports = router;

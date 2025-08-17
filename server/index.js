@@ -22,7 +22,7 @@ mongoose.connect(mongodb_uri)
 
 //ROUTERS
 const auth = require('./routes/auth');
-const game = require('./routes/game');
+const game = require('./routes/games');
 
 app.use('/auth', auth);
 app.use('/', game)
