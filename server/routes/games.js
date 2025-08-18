@@ -89,19 +89,35 @@ router.post('/games', authRequired, requireRole('host'), async (req, res) => {
 })
 
 
-router.post('/games/:id/join', (req, res) => {
-    //first need to have the authRequired middlware. 
-    // need to check if the current date is lower than the games date
-    // need to check if the user is not in the game (if he is in the game, mention that in the response)
-    // need to check if the game has the availble sports for participants.
-    // add the user_id inside of the participants of the game
-    // add the participation record
-    // return the result message that user was added in the game.
+router.post('/games/:id/join', authRequired, async (req, res) => {
+    try {
+        const user = req.user;
+        const gameId = req.params.id;
+        const todayDate = new Date();
+        const game = await Game.findById(gameId);
+        if (!game) {
+            return res.status(404).json({ message: "The game does not exist"});
+        }
+        if (game.participants.includes(user.id)) {
+            return res.status(400).json({ message: "You are already in the game!"});
+        }
+        if (game.max_players <= game.participants.length) {
+            return res.status(400).json({ message: "Sorry, the game is full"});
+        }
+
+        game.participants.push(user.id);
+        await game.save();
+        
+        res.status(200).json({
+            message: "Joined the game successfully!",
+            success: true,
+            game
+        })
+
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({ message: "Failed to join the game"});
+    }
 })
 
-router.post('/games/:id/leave', (req, res) => {
-    
-})
-
-rotuer.delete 
 module.exports = router;
