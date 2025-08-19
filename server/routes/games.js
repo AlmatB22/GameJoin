@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const Game = require('../models/game');
+const Participation = require('../models/participation')
 
 const router = express.Router();
 
@@ -106,17 +107,61 @@ router.post('/games/:id/join', authRequired, async (req, res) => {
         }
 
         game.participants.push(user.id);
+        const participation = await Participation.create({
+            user_id: user.id,
+            game_id: game._id
+        });
         await game.save();
         
         res.status(200).json({
             message: "Joined the game successfully!",
             success: true,
-            game
+            game,
+            participation
         })
 
     } catch(err) {
         console.log(err);
         res.status(500).json({ message: "Failed to join the game"});
+    }
+})
+
+router.delete('/games/:id/leave', authRequired, async (req, res) => {
+    try {
+        const current_date = new Date();
+        const user = req.user;
+        const gameId = req.params.id;
+
+        const game = await Game.findById(gameId);
+        if (!game) {
+            return res.status(404).json({ message: "The game does not exist"});
+        }
+
+        if (!game.participants.some((id) => id.toString() === user.id)) {
+            return res.status(400).json({message: "You are not in the game"});
+        }
+
+        if ((game.date_time.getTime() - current_date.getTime() ) / 3600000 <= 2) {
+            return res.status(400).json({message: "You cannot leave the game, as the game will start soon"})
+        }
+        
+        const participation = await Participation.findOne({user_id: user.id, game_id: game._id});
+        if (participation) {
+            await participation.deleteOne();
+        }
+
+
+        game.participants = game.participants.filter((id) => id.toString() !== user.id);
+        await game.save();
+
+
+        return res.status(200).json({
+            message: "The user was successfully removed from the game",
+            game
+        })
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "Failed to leave the game" });
     }
 })
 
